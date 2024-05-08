@@ -1,0 +1,81 @@
+
+/* Fixed effect */
+%Macro inds(vbl=,study1=,beta1=,se1=,study2=,beta2=,se2=);  
+
+  Data metaanal; 
+      Length vbl $8 study $8;
+    vbl="&vbl.";
+    %do n=1 %to 2; 
+    study="&&study&n.";
+    beta=&&beta&n.;
+    se=&&se&n.;
+    Output;
+    %end;  
+  Run;
+
+  title "Exposure variable &&vbl.";
+  Proc print;
+  Run;
+
+  %metaanal(data=metaanal,beta=beta,se_or_var=s,se=se,studylab=study,pooltype=fixed,explabel=Olive oil,
+  outcomelabel=Fatal Dementia,wt=1,noprint=F,loglinear=T,printcoeff=T);
+
+%Mend inds;
+
+/* Random effect */
+%Macro indsr(vbl=,study1=,beta1=,se1=,study2=,beta2=,se2=);  
+
+  Data metaanal; 
+      Length vbl $8 study $8;
+    vbl="&vbl.";
+    %do n=1 %to 2; 
+    study="&&study&n.";
+    beta=&&beta&n.;
+    se=&&se&n.;
+    Output;
+    %end;  
+  Run;
+
+  title "Exposure variable &&vbl.";
+  Proc print;
+  Run;
+
+  %metaanal(data=metaanal,beta=beta,se_or_var=s,se=se,studylab=study,pooltype=random,explabel=Olive oil,
+  outcomelabel=Fatal Dementia,wt=1,noprint=F,loglinear=T,printcoeff=T);
+
+%Mend indsr;
+
+
+
+/* Fatal dementia fully adjusted model 3 - fixed effect */
+
+%inds(vbl=oilgrp2,study1=nhs,beta1=-0.15950,se1= 0.04004,study2=hpfs,beta2= -0.01544 ,se2= 0.06539 );
+
+%inds(vbl=oilgrp3,study1=nhs,beta1=-0.19377,se1= 0.07300,study2=hpfs,beta2=-0.10229,se2= 0.12296);
+
+%inds(vbl=oilgrp4,study1=nhs,beta1=-0.39891,se1= 0.06930,study2=hpfs,beta2=-0.14451,se2= 0.11743);
+
+%inds(vbl=oilm,study1=nhs,beta1=-0.03138,se1= 0.00631,study2=hpfs,beta2=-0.01577,se2=0.01115);
+
+%inds(vbl=olive5,study1=nhs,beta1=-0.12272,se1= 0.02434,study2=hpfs,beta2=-0.04293,se2= 0.04204);
+
+run;
+
+
+/* Fatal dementia fully adjusted model 3 - random effect */
+
+%indsr(vbl=oilgrp2,study1=nhs,beta1=-0.15950,se1= 0.04004,study2=hpfs,beta2= -0.01544 ,se2= 0.06539 );
+
+%indsr(vbl=oilgrp3,study1=nhs,beta1=-0.19377,se1= 0.07300,study2=hpfs,beta2=-0.10229,se2= 0.12296);
+
+%indsr(vbl=oilgrp4,study1=nhs,beta1=-0.39891,se1= 0.06930,study2=hpfs,beta2=-0.14451,se2= 0.11743);
+
+%indsr(vbl=oilm,study1=nhs,beta1=-0.03138,se1= 0.00631,study2=hpfs,beta2=-0.01577,se2=0.01115);
+
+%indsr(vbl=olive5,study1=nhs,beta1=-0.12272,se1= 0.02434,study2=hpfs,beta2=-0.04293,se2= 0.04204);
+
+run;
+
+
+
+
