@@ -1,0 +1,82 @@
+
+/* COMPETING RISK */
+%include 'dataset.sas';  
+
+
+data pooldata;
+    set pooldata;
+    pooldeadtype=0;
+    pool_dead_type=0;
+    if pooldemen_alzdead=1 then pool_dead_type=1;
+        else if pooldead=1 then pool_dead_type=2;
+
+run;
+
+
+proc freq data=pooldata;
+    table pool_dead_type;
+run;
+
+
+%subtype(data=pooldata,
+studydesign=cohort,
+id=id,
+exposure=&pooloil_,
+augmented=no,
+time=tdead_demen_alz,
+eventtype=pool_dead_type,
+unconstrvar=poolances  &poolalco_ pmarry palone poolhbp poolchol pooldbcase &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans,
+stratavar=interval cohort poolage,
+paramest=out1);
+
+data pool_comp;
+    length label $64.;
+    set out1;
+run;
+
+ODS CSV FILE= "file.competing.csv";
+proc print data=pool_comp;
+run;
+
+
+
+%subtype(data=pooldata,
+studydesign=cohort,
+id=id,
+exposure=pooloil5,
+augmented=no,
+time=tdead_demen_alz,
+eventtype=pool_dead_type,
+unconstrvar=poolances  &poolalco_ pmarry palone poolhbp poolchol pooldbcase &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans,
+stratavar=interval cohort poolage,
+paramest=out2);
+
+data pool_comp_5g;
+    length label $64.;
+    set out2;
+run;
+
+ODS CSV FILE= "file.competing_5g.csv";
+proc print data=pool_comp_5g;
+run;
+
+
+%subtype(data=pooldata,
+studydesign=cohort,
+id=id,
+exposure=poilm,
+augmented=no,
+time=tdead_demen_alz,
+eventtype=pool_dead_type,
+unconstrvar=poolances  &poolalco_ pmarry palone poolhbp poolchol pooldbcase &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans,
+stratavar=interval cohort poolage,
+paramest=out3);
+ 
+data pool_comp_trend;
+    length label $64.;
+    set out3;
+run;
+
+ODS CSV FILE= "file.competing_trend.csv";
+proc print data=pool_comp_trend;
+run;
