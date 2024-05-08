@@ -1,0 +1,430 @@
+
+%include 'dataset.sas';  
+
+
+data pooldata;
+    set pooldata;
+	if poolage>=65 then poolage_2cat=1;
+	else poolage_2cat=0;
+
+
+    if poolage>=75 then poolage_75=1;
+    else poolage_75=0;
+
+
+	if poolalco=1 or poolalco=2 or poolalco=3 then poolalc_2cat=0;
+        else if poolalco=4 then poolalc_2cat=1; 
+        else poolalc_2cat=.;
+        
+    if poolalco=1 then poolalc_0cat=0;
+        else if poolalco=2 or poolalco=3 or poolalco=4 then poolalc_0cat=1; 
+        else poolalc_0cat=.;
+
+        if poolsmk=1 then poolsmk_2cat=1;
+        else if poolsmk=2 or poolsmk=3 then poolsmk_2cat=2;
+        else poolsmk_2cat=.;
+
+	intage= pooloil5*poolage;
+        intage_75=pooloil5*poolage_75;
+	intsex= pooloil5*cohort;
+	intbmi= pooloil5*poolbmi;
+
+        intsmk= pooloil5*poolsmk_2cat;
+
+	intahei_cont= pooloil5*poolahei; /* testing as continuous var - should update  in each cohort the median to the one for score without polyunsat */
+        intahei=pooloil5*poolahei2grp; /* this ahei 2 group is based on median that includes PUFA, same for AMED including monounsat */
+
+
+	intemed= pooloil5*poolemed2grp;
+        intemed_cont=pooloil5*poolemed;
+
+	intalc0= pooloil5*poolalc_0cat;
+	intalc2= pooloil5*poolalc_2cat;
+	intmvit= pooloil5*poolmvit;
+	intfvt= pooloil5*pfvmed;
+	intgmed= pooloil5*pgreenmed;
+	intpamed= pooloil5*poolpamed;
+	intalone= pooloil5*palone;
+	intdepres= pooloil5*pooldepres;
+	intfamdem= pooloil5*poolfamdem;
+	intances= pooloil5*poolances;
+	intchol= pooloil5*poolchol;
+	inthbp= pooloil5*poolhbp;
+	intdbcase= pooloil5*pooldbcase;
+run;
+
+proc means data=pooldata;
+        var intage intage_75;
+run;
+
+
+proc freq data=pooldata;
+        table poolage_75 poolage;
+run;
+
+
+%LET COVARS1= poolances &poolalco_ pmarry palone poolhbp poolchol pooldbcase &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans;
+
+
+
+/*******************************************************************************/
+/* HR of olive oil and fatal dementia using pooled datasets and cumulative average */
+/*******************************************************************************/
+
+
+/* SEX/COHORT*/
+
+%res(analysis=dead_demen_alz,catlin=F,
+    data= pooldata, event= pooldemen_alzdead, time= pooltdemen_alzdead, 
+    timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14, 
+    id=id, agevar=poolage, tvar=interval,
+    strata=interval poolage,   
+    labels=F,  
+		
+	exp1 =intsex, adjust1= pooloil5 cohort &covars1);
+run;
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval poolage,  
+
+	model1=intsex pooloil5 cohort,
+	model2=intsex pooloil5 cohort &covars1);
+run;
+
+
+/* AGE */
+
+%res(analysis=dead_demen_alz,catlin=F,
+    data= pooldata, event= pooldemen_alzdead, time= pooltdemen_alzdead, 
+    timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14, 
+    id=id, agevar=poolage, tvar=interval,
+    strata=interval cohort,   
+    labels=F,  
+		
+	exp1 =intage, adjust1= pooloil5 poolage &covars1);
+run;
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort,  
+
+	model1=intage pooloil5 poolage,
+	model2=intage pooloil5 poolage &covars1);
+run;
+
+
+%res(analysis=dead_demen_alz,catlin=F,
+    data= pooldata, event= pooldemen_alzdead, time= pooltdemen_alzdead, 
+    timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14, 
+    id=id, agevar=poolage, tvar=interval,
+    strata=interval cohort,   
+    labels=F,  
+		
+	exp1 =intage_75, adjust1= pooloil5 poolage_75 &covars1);
+run;
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort,  
+
+	model1=intage_75 pooloil5 poolage_75,
+	model2=intage_75 pooloil5 poolage_75 &covars1);
+run;
+
+
+/* BMI */
+
+%res(analysis=dead_demen_alz,catlin=F,
+    data= pooldata, event= pooldemen_alzdead, time= pooltdemen_alzdead, 
+    timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14, 
+    id=id, agevar=poolage, tvar=interval,
+    strata=interval cohort poolage,   
+    labels=F,  
+		
+	exp1 =intbmi, adjust1= pooloil5 poolbmi poolances   &poolalco_ pmarry palone poolhbp poolchol &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans);
+run;
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort poolage,  
+
+	model1=intbmi pooloil5 poolbmi,
+	model2=intbmi pooloil5 poolbmi poolances   &poolalco_ pmarry palone poolhbp poolchol &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans);
+run;
+
+
+/* SMOKING */
+
+%res(analysis=dead_demen_alz,catlin=F,
+    data= pooldata, event= pooldemen_alzdead, time= pooltdemen_alzdead, 
+    timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14, 
+    id=id, agevar=poolage, tvar=interval,
+    strata=interval cohort poolage,   
+    labels=F,  
+		
+	exp1 =intsmk, adjust1= pooloil5 poolsmk_2cat poolances  pmarry palone poolhbp poolchol &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans);
+run;
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval poolage,  
+
+	model1=intsmk pooloil5 poolsmk_2cat,
+	model2=intsmk pooloil5 poolsmk_2cat poolances  pmarry palone poolhbp poolchol &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans);
+run;
+
+/* AHEI */
+
+%res(analysis=dead_demen_alz,catlin=F,
+    data= pooldata, event= pooldemen_alzdead, time= pooltdemen_alzdead, 
+    timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14, 
+    id=id, agevar=poolage, tvar=interval,
+    strata=interval cohort poolage,   
+    labels=F,  
+		
+	exp1 =intahei, adjust1= pooloil5 poolahei2grp,
+        exp2 = intahei, adjust2= pooloil5 poolahei2grp poolances   pmarry palone poolhbp poolchol &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_);
+run;
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort poolage,   
+
+	model1=intahei pooloil5 poolahei2grp,
+	model2=intahei pooloil5 poolahei2grp poolances   pmarry palone poolhbp poolchol &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ );
+run; 
+
+
+/* cont */
+%res(analysis=dead_demen_alz,catlin=F,
+    data= pooldata, event= pooldemen_alzdead, time= pooltdemen_alzdead, 
+    timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14, 
+    id=id, agevar=poolage, tvar=interval,
+    strata=interval cohort poolage,   
+    labels=F,  
+		
+	exp1 =intahei_cont, adjust1= pooloil5 poolahei,
+        exp2 = intahei_cont, adjust2= pooloil5 poolahei poolances   pmarry palone poolhbp poolchol &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_);
+run;
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort poolage,  
+
+	model1=intahei_cont pooloil5 poolahei,
+	model2=intahei_cont pooloil5 poolahei poolances   pmarry palone poolhbp poolchol &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ );
+run; 
+
+
+/* AHEI and AMED include alcohol as a component but I am considering adjusting for alcohol given that we are just looking at 2 groups and that alcohol intake varies */
+
+
+/* AMED */
+
+%res(analysis=dead_demen_alz,catlin=F,
+    data= pooldata, event= pooldemen_alzdead, time= pooltdemen_alzdead, 
+    timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14, 
+    id=id, agevar=poolage, tvar=interval,
+    strata=interval cohort poolage,   
+    labels=F,  
+		
+	exp1 =intemed, adjust1= pooloil5 poolemed2grp,
+        exp2 = intemed, adjust2= pooloil5 poolemed2grp poolances   pmarry palone poolhbp poolchol &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_);
+run;
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort poolage,   
+
+	model1=intemed pooloil5 poolemed2grp,
+	model2=intemed pooloil5 poolemed2grp poolances   pmarry palone poolhbp poolchol &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ );
+run;
+
+/* cont */
+%res(analysis=dead_demen_alz,catlin=F,
+    data= pooldata, event= pooldemen_alzdead, time= pooltdemen_alzdead, 
+    timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14, 
+    id=id, agevar=poolage, tvar=interval,
+    strata=interval cohort poolage,   
+    labels=F,  
+		
+	exp1 =intemed_cont, adjust1= pooloil5 poolemed,
+        exp2 = intemed_cont, adjust2= pooloil5 poolemed poolances   pmarry palone poolhbp poolchol &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_);
+run;
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort poolage,    
+
+	model1=intemed_cont pooloil5 poolemed,
+	model2=intemed_cont pooloil5 poolemed poolances   pmarry palone poolhbp poolchol &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ );
+run; 
+
+
+/* ALCOHOL vs non-consumers*/
+
+%res(analysis=dead_demen_alz,catlin=F,
+    data= pooldata, event= pooldemen_alzdead, time= pooltdemen_alzdead, 
+    timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14, 
+    id=id, agevar=poolage, tvar=interval,
+    strata=interval cohort poolage,   
+    labels=F,  
+		
+	exp1 =intalc0, adjust1= pooloil5 poolalc_0cat poolances   pmarry palone poolhbp poolchol &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans);
+run;
+
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort poolage,  
+
+	model1=intalc0 pooloil5 poolalc_0cat,
+	model2=intalc0 pooloil5 poolalc_0cat poolances   pmarry palone poolhbp poolchol &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans);
+run;
+
+
+/* ALCOHOL vs high consumers */
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort poolage,  
+
+	model1=intalc2 pooloil5 poolalc_2cat,
+	model2=intalc2 pooloil5 poolalc_2cat poolances   pmarry palone poolhbp poolchol &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans);
+run;
+
+
+/* MULTIVIT */
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort poolage,  
+
+	model1=intmvit pooloil5 poolmvit,
+	model2=intmvit pooloil5 poolmvit poolances   &poolalco_ pmarry palone poolhbp poolchol &poolsmk_ &poolpa_  &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans);
+run;
+
+
+
+/* FRUITS AND VEG */
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort poolage,  
+
+	model1=intfvt pooloil5 pfvmed,
+	model2=intfvt pooloil5 pfvmed poolances   &poolalco_ pmarry palone poolhbp poolchol &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolwgrain_ pooltrans);
+run;
+
+
+/* GREEN VEG */
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort poolage,  
+
+	model1=intgmed pooloil5 pgreenmed,
+	model2=intgmed pooloil5 pgreenmed poolances   &poolalco_ pmarry palone poolhbp poolchol &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolwgrain_ pooltrans);
+run;
+
+
+/* PHYS ACT */
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort poolage, 
+
+	model1=intpamed pooloil5 poolpamed,
+	model2=intpamed pooloil5 poolpamed poolances   &poolalco_ pmarry palone poolhbp poolchol &poolsmk_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans);
+run;
+
+
+/* LIVING ALONE */
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort poolage,  
+
+	model1=intalone pooloil5 palone,
+	model2=intalone pooloil5 palone poolances   &poolalco_ pmarry poolhbp poolchol &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans);
+run;
+
+
+/* DEPRESSION */
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort poolage, 
+
+	model1=intdepres pooloil5 pooldepres,
+	model2=intdepres pooloil5 pooldepres poolances   &poolalco_ pmarry palone poolhbp poolchol &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans);
+run;
+
+
+/* FAMILY HX OF DEMENTIA */
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort poolage, 
+
+	model1=intfamdem pooloil5 poolfamdem,
+	model2=intfamdem pooloil5 poolfamdem poolances   &poolalco_ pmarry palone poolhbp poolchol &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans);
+run; 
+
+
+/* MEDITER ANCESTRY */
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort poolage, 
+
+	model1=intances pooloil5 poolances,
+	model2=intances pooloil5 poolances   &poolalco_ pmarry palone poolhbp poolchol &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans);
+run;
+
+
+/* HYPERCHOL (incident) */
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort poolage, 
+
+	model1=intchol pooloil5 poolchol,
+	model2=intchol pooloil5 poolchol poolances   &poolalco_ pmarry palone poolhbp pooldbcase &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans);
+run;
+
+
+/* HIGH BP (incident) */
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort poolage, 
+
+	model1=inthbp pooloil5 poolhbp,
+	model2=inthbp pooloil5 poolhbp poolances   &poolalco_ pmarry palone poolchol pooldbcase &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans);
+run; 
+
+
+/* Diabetes (incident) */
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort poolage, 
+
+	model1=intdbcase pooloil5 pooldbcase,
+	model2=intdbcase pooloil5 pooldbcase poolances   &poolalco_ pmarry palone poolchol poolhbp &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans);
+run; 
+
+
+/* CVD (incident) */
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort poolage, 
+
+	model1=intdbcase pooloil5 poolheart,
+	model2=intdbcase pooloil5 poolheart poolances   &poolalco_ pmarry palone poolchol poolhbp pooldbcase &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans);
+run; 
+
+%resout(outfile=pool_demendeath_interaction,dbms=tab,opt=replace); 
