@@ -1,0 +1,180 @@
+/************************/
+/*** POOLED ANALYSIS ****/
+/************************/
+
+%include 'dataset.sas';  
+
+
+%LET COVARS1= poolances  &poolalco_ pmarry palone poolhbp poolchol pooldbcase &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres;
+%LET COVARS2= poolances  &poolalco_ pmarry palone poolhbp poolchol pooldbcase &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_;
+%LET COVARS3= poolances  &poolalco_ pmarry palone poolhbp poolchol pooldbcase &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans;
+
+%LET COVARS6= poolances  &poolalco_ pmarry palone poolhbp poolchol pooldbcase &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans; /* without BMI */
+%LET COVARS7= poolances  pmarry palone poolhbp poolchol pooldbcase &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolaheiq_; 
+
+
+%LET COVARS4= poolances  pmarry palone poolhbp poolchol pooldbcase &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres;
+%LET COVARS5= poolances  pmarry palone poolhbp poolchol pooldbcase &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_;
+
+
+/*******************************************************************************/
+/* HR of olive oil and fatal dementia using pooled datasets and cumulative average */
+/*******************************************************************************/
+
+
+proc printto print='pool_demen_death_cumavg_2010.saslog' new;
+
+
+%res(analysis=dead_demen_alz,catlin=F,
+    data= pooldata, event= pooldemen_alzdead, time= pooltdemen_alzdead,
+    timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+    id=id, agevar=poolage, tvar=interval,
+    strata=interval cohort poolage,     
+    labels=F,  
+	exp1=&pooloil_,					
+	exp2 =&pooloil_, adjust2= &covars2,
+	exp3 =&pooloil_, adjust3= &covars3,
+
+	exp4 =&pooloil_, adjust4= &covars6,
+	exp5 =&pooloil_, adjust5= &covars7,
+	
+	exp6= poilm,			
+	exp7 = poilm, adjust7= &covars2,
+	exp8 = poilm, adjust8= &covars3,
+
+	exp9 = poilm, adjust9= &covars6,
+	exp10 = poilm, adjust10= &covars7,
+
+	exp11=pooloil5,			
+	exp12 =pooloil5, adjust12= &covars2,
+	exp13 =pooloil5, adjust13= &covars3,
+
+	exp14=pooloil5, adjust14= &covars6,
+	exp15=pooloil5, adjust15= &covars7
+);
+
+run;
+
+
+%resout(outfile=pool_demen_alz_death_cumavg_2010,dbms=tab,opt=replace); 
+
+
+proc printto print='pool_ahei_demendeath_2010.saslog' new;
+
+
+	%res(analysis=dead_demen_alz,catlin=F,
+		data= pooldata, event= pooldemen_alzdead, time= pooltdemen_alzdead,
+		timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+		id=id, agevar=poolage, tvar=interval,
+		strata=interval cohort poolage,     
+		labels=F,  
+		exp1=&poolaheifullt_,	
+		exp2 =&poolaheifullt_, adjust2= &COVARS4,
+		exp3 =&poolaheifullt_, adjust3= &COVARS5,
+
+		exp5= poolaheifulltme,	
+		exp6 = poolaheifulltme, adjust6= &COVARS4,		
+		exp7 = poolaheifulltme, adjust7= &COVARS5,
+
+		exp9=poolaheifullsd,	
+		exp10 =poolaheifullsd, adjust10= &COVARS4,		
+		exp11=poolaheifullsd, adjust11= &COVARS5
+	);
+	
+	run;
+	
+	%resout(outfile=pool_ahei_demendeath_2010,dbms=tab,opt=replace); 
+	
+	proc printto print='pool_emed_demendeath_2010.saslog' new;
+
+
+	%res(analysis=dead_demen_alz,catlin=F,
+		data= pooldata, event= pooldemen_alzdead, time= pooltdemen_alzdead,
+		timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+		id=id, agevar=poolage, tvar=interval,
+		strata=interval cohort poolage,     
+		labels=F,  
+		exp1=&poolemedfullt_,	
+		exp2 =&poolemedfullt_, adjust2= &COVARS4,
+		exp3 =&poolemedfullt_, adjust3= &COVARS5,
+
+		exp5= poolemedfulltme,	
+		exp6 = poolemedfulltme, adjust6= &COVARS4,		
+		exp7 = poolemedfulltme, adjust7= &COVARS5,
+
+		exp9=poolemedfullsd,	
+		exp10 =poolemedfullsd, adjust10= &COVARS4,		
+		exp11=poolemedfullsd, adjust11= &COVARS5
+	);
+		
+		run;
+		
+		%resout(outfile=pool_emed_demendeath_2010,dbms=tab,opt=replace); 
+	
+		
+
+		proc printto print='pool_jointdiet_demendeath_2010.saslog' new;
+
+
+			%res(analysis=dead_demen_alz,catlin=F,
+				data= pooldata, event= pooldemen_alzdead, time= pooltdemen_alzdead,
+				timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+				id=id, agevar=poolage, tvar=interval,
+				strata=interval cohort poolage,     
+				labels=F,  
+				exp1=&poolooemed_,	
+				exp2 =&poolooemed_, adjust2= &COVARS4,		
+				exp3 =&poolooemed_, adjust3= &COVARS5,
+		
+				exp4= &poolooahei_,		
+				exp5 =&poolooahei_, adjust5= &COVARS4,	
+				exp6 = &poolooahei_, adjust6= &COVARS5);
+			run;
+			
+			%resout(outfile=pool_jointdiet_demendeath_2010,dbms=tab,opt=replace); 
+
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor, strata=interval cohort poolage, 
+    model1= &pooloil_,
+	model2= &pooloil_ &covars2,
+	model3= &pooloil_ &covars3,
+	model4= &pooloil_ &covars6, 
+	model5 =&pooloil_ &covars7
+	);
+run;
+
+
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor , strata=interval cohort poolage, 
+    model1= &poolaheifullt_,
+	model2= &poolaheifullt_ &COVARS4,
+	model3= &poolaheifullt_ &COVARS5
+	); 
+run;
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor , strata=interval cohort poolage, 
+    model1= &poolemedfullt_,
+	model2= &poolemedfullt_ &COVARS4,
+	model3= &poolemedfullt_ &COVARS5
+	); 
+run;
+
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor , strata=interval cohort poolage, 
+    model1= &poolooemed_,
+	model2= &poolooemed_ &COVARS4,
+	model3= &poolooemed_ &COVARS5, 
+	
+	model4= &poolooahei_,
+	model5= &poolooahei_ &COVARS4,
+	model6= &poolooahei_ &COVARS5
+	);
+run;
