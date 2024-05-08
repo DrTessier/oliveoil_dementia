@@ -1,0 +1,87 @@
+
+%include 'dataset.sas';  
+
+data pooldata;
+    set pooldata;
+    if poolze4_2cat eq . then delete; 
+run;
+
+%LET COVARS1= poolances  pmarry palone poolhbp poolchol pooldbcase &poolsmk_ &poolalco_ &poolpa_  poolmvit poolasp  &poolphms_ poolcalor poolfamdem pooldepres poolze4_2cat;
+%LET COVARS2= poolances  pmarry palone poolhbp poolchol pooldbcase &poolsmk_ &poolalco_ &poolpa_  poolmvit poolasp  &poolphms_ poolcalor poolfamdem pooldepres &poolbmi_ poolze4_2cat;
+%LET COVARS3= poolances  pmarry palone poolhbp poolchol pooldbcase &poolsmk_ &poolalco_ &poolpa_  poolmvit poolasp  &poolphms_ poolcalor poolfamdem pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans poolze4_2cat;
+run;
+
+proc printto print='pool_demen_alz_death_cumavg_apoe.saslog' new;
+
+
+    %res(analysis=dead_demen_alz,catlin=F,
+        data= pooldata, event= pooldemen_alzdead, time= pooltdemen_alzdead,
+        timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,
+        strata=interval cohort poolage,     
+        labels=F,  
+        exp1=&pooloil_, adjust1= poolze4_2cat,					
+        exp2 =&pooloil_, adjust2= &COVARS1,
+        exp3 =&pooloil_, adjust3= &COVARS2,
+        exp4 =&pooloil_, adjust4= &COVARS3,
+    
+        exp6= poilm, adjust6= poolze4_2cat,			
+        exp7 = poilm, adjust7= &COVARS1,
+        exp8 = poilm, adjust8= &COVARS2,
+        exp9 = poilm, adjust9= &COVARS3,
+                
+    
+        exp11=pooloil5,  adjust11= poolze4_2cat,			
+        exp12 =pooloil5, adjust12= &COVARS1,
+        exp13 =pooloil5, adjust13= &COVARS2,
+        exp14=pooloil5, adjust14= &COVARS3
+    
+    );
+    
+    run;
+    
+    %resout(outfile=pool_demen_alz_death_cumavg_apoe,dbms=tab,opt=replace);  
+
+proc printto print='POOL_apoe_demendeath_OR.saslog' new;
+  
+    %res(analysis=dead_demen_alz,catlin=F,
+        data=pooldata, event= pooldemen_alzdead, time= pooltdemen_alzdead,
+        timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,
+        strata=interval poolage,       
+        labels=F,  
+        exp1=&poolze4_
+    );
+    
+    run;
+    
+    %resout(outfile=POOL_apoe_demendeath_OR,dbms=tab,opt=replace); 
+    
+
+    proc printto print='POOL_apoe_demendeath_OR_comp.saslog' new;
+  
+        %res(analysis=poolwof_demdead,catlin=F,
+            data=pooldata, event= poolwof_demdead, time= pooltwof_demdead,
+            timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+            id=id, agevar=poolage, tvar=interval,
+            strata=interval poolage,       
+            labels=F,  
+            exp1=&poolze4_
+        );
+        
+        run;
+        
+        %resout(outfile=POOL_apoe_demendeath_OR_comp,dbms=tab,opt=replace); 
+         
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor,
+    model1= &pooloil_ poolze4_2cat,
+	model2= &pooloil_ &COVARS1,
+	model3= &pooloil_ &COVARS2,
+	model4= &pooloil_ &COVARS3
+    );
+run;  
+
+
