@@ -1,0 +1,77 @@
+
+%include 'dataset.sas';  
+
+
+%LET COVARS1= poolances poolwhite &poolalco_ pmarry palone poolhbp poolchol pooldbcase &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres;
+%LET COVARS2= poolances poolwhite &poolalco_ pmarry palone poolhbp poolchol pooldbcase &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_;
+%LET COVARS3= poolances poolwhite &poolalco_ pmarry palone poolhbp poolchol pooldbcase &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_ &poolrmeat_ &poolnut_ &poolsoda_ &poolfvt_ &poolwgrain_ pooltrans;
+
+
+%LET COVARS4= poolances poolwhite pmarry palone poolhbp poolchol pooldbcase &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres;
+%LET COVARS5= poolances poolwhite pmarry palone poolhbp poolchol pooldbcase &poolsmk_ &poolpa_  poolmvit   &poolphms_ poolcalor poolfamdem &poolsesq_ pooldepres &poolbmi_;
+
+
+/*******************************************************************************/
+/* HR of olive oil and fatal dementia using pooled datasets and cumulative average */
+/*******************************************************************************/
+
+
+proc printto print='pool_demen_alz_death_cumavg_2010_lagged_4yr.saslog' new;
+
+
+%res(analysis=dead_demen_alz,catlin=F,
+    data= pooldata, event= pooldemen_alzdead, time= pooltdemen_alzdead,
+    timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+    id=id, agevar=poolage, tvar=interval,
+    strata=interval cohort poolage,     
+    labels=F,  
+	exp1=&pooloil_l4_,					
+	exp2 =&pooloil_l4_, adjust2= &covars1,
+	exp3 =&pooloil_l4_, adjust3= &covars2,
+	exp4 =&pooloil_l4_, adjust4= &covars3,
+
+	exp6= poilm_l4,			
+	exp7 = poilm_l4, adjust7= &covars1,
+	exp8 = poilm_l4, adjust8= &covars2,
+	exp9 = poilm_l4, adjust9= &covars3,
+
+
+	exp11=pooloil5_l4,			
+	exp12 =pooloil5_l4, adjust12= &covars1,
+	exp13 =pooloil5_l4, adjust13= &covars2,
+	exp14=pooloil5_l4, adjust14= &covars3
+
+);
+
+run;
+
+
+%resout(outfile=pool_demen_alz_death_cumavg_2010_lagged_4yr,dbms=tab,opt=replace); 
+
+endsas;
+
+%mphreg9(data=pooldata, event=pooldemen_alzdead, time=pooltdemen_alzdead, timevar=t01 t02 t03 t04 t05 t06 t07 t08 t09 t10 t11 t12 t13 t14,
+        id=id, agevar=poolage, tvar=interval,  dtdx=dtdth, dtdth=dtdth,
+        contvar=poolcalor ,
+        model1= &pooloil_l4_,
+	model2= &pooloil_l4_ &covars1,
+	model3= &pooloil_l4_ &covars2 ,
+	model4= &pooloil_l4_ &covars3
+	);
+run;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
